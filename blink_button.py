@@ -11,16 +11,22 @@ GPIO.setup(8, GPIO.OUT,
 
 fd = sys.stdin.fileno()
 old_settings = termios.tcgetattr(fd)
+led_on = False
+done = False
 try:
     tty.setraw(sys.stdin.fileno())
-    ch = sys.stdin.read(1)
+    while not done:
+        ch = sys.stdin.read(1)
+        if 'k' == ch:
+            if led_on:
+                GPIO.output(8, GPIO.LOW)
+            else:
+                GPIO.output(8, GPIO.HIGH)
+            led_on = not led_on
+        elif 'q' == ch:
+            done = True
 finally:
     termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
 
-print(ch)
 
-while True: # Run forever
-    GPIO.output(8, GPIO.HIGH) # Turn on
-    sleep(1)                  # Sleep for 1 second
-    GPIO.output(8, GPIO.LOW)  # Turn off
-    sleep(1)                  # Sleep for 1 second
+
