@@ -1,3 +1,4 @@
+odrv0.axis0.requested_state = AXIS_STATE_FULL_CALIBRATION_SEQUENCE
 
 from gpiozero import Button
 from time import sleep

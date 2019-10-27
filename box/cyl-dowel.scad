@@ -1,4 +1,4 @@
-height = 20.5;
+height = 50;
 radius = 4.88;
 difference () {
      cylinder (h=height, r=radius+1.5, center=true);
