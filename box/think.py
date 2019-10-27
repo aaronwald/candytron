@@ -31,9 +31,9 @@ while True:
     if button.is_pressed:
         print("Pressed")
         serScreen.write(b'Candy')
-        my_drive.axis0.controller.vel_setpoint= 5000
+        my_drive.axis0.controller.vel_setpoint = 5000
 	time.sleep(2)
-	my_drive.axis0.controller.vel_setpoint= 0
+	my_drive.axis0.controller.vel_setpoint = 0
     else:
         pass
 
