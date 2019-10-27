@@ -1,16 +1,20 @@
 #!/usr/bin/python3
 
 from __future__ import print_function
+from gpiozero import Button
+import serial
 
 import odrive
 from odrive.enums import *
 import time
 
+# setup button
+button = Button(2)
+serScreen = serial.Serial('/dev/ttyACM1', 9600)
+
 # Find a connected ODrive (this will block until you connect one)
 print("finding an odrive...")
 my_drive = odrive.find_any()
-
-
 my_drive.axis0.requested_state = AXIS_STATE_FULL_CALIBRATION_SEQUENCE
 
 while my_drive.axis0.current_state != AXIS_STATE_IDLE:
@@ -19,14 +23,7 @@ while my_drive.axis0.current_state != AXIS_STATE_IDLE:
 my_drive.axis0.requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL
 my_drive.axis0.controller.config.control_mode = CTRL_MODE_VELOCITY_CONTROL
 
-
-
-from gpiozero import Button
-import serial
-
-button = Button(2)
-serScreen = serial.Serial('/dev/ttyACM1', 9600)
-
+# main
 while True:
     if button.is_pressed:
         print("Pressed")
