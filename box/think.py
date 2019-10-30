@@ -4,7 +4,7 @@ from __future__ import print_function
 from gpiozero import Button
 import serial
 
-improt random
+import random
 import odrive
 from odrive.enums import *
 import time
