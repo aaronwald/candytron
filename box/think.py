@@ -28,14 +28,16 @@ my_drive.axis0.controller.config.control_mode = CTRL_MODE_VELOCITY_CONTROL
 # main
 no_candy_count = 0
 candy_count = 0
-rockin = random.randrange(2,9,1)
+rockin = random.randrange(10,13,1)
 while True:
     if button.is_pressed:
         print("Pressed")
         if candy_count % rockin:
             serScreen.write(b'Rockin')
+            serScreen.flush()
         else:
             serScreen.write(b'Candy')
+            serScreen.flush()
             
         my_drive.axis0.controller.vel_setpoint = 4000
         time.sleep(2)
