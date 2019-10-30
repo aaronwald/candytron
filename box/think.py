@@ -39,8 +39,8 @@ while True:
             serScreen.write(b'Candy')
             serScreen.flush()
             
-        my_drive.axis0.controller.vel_setpoint = 5000
-        time.sleep(1)
+        my_drive.axis0.controller.vel_setpoint = 4000
+        time.sleep(2)
         my_drive.axis0.controller.vel_setpoint = 0
         no_candy_count = 0
         candy_count += 1
