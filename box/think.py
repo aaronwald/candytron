@@ -33,22 +33,22 @@ while True:
     if button.is_pressed:
         print("Pressed")
         if candy_count % rockin:
-            serScreen.write(b'`Smarties Smarties Smarties...')
+            serScreen.write(b'Smarites')
             serScreen.flush()
         else:
             serScreen.write(b'Candy')
             serScreen.flush()
             
-        my_drive.axis0.controller.vel_setpoint = 4000
-        time.sleep(2)
+        my_drive.axis0.controller.vel_setpoint = 5000
+        time.sleep(1)
         my_drive.axis0.controller.vel_setpoint = 0
         no_candy_count = 0
         candy_count += 1
     else:
-        time.sleep(1)
+        time.sleep(.25)
         no_candy_count += 1
 
-        if not no_candy_count % 60:
+        if not no_candy_count % 240:
             serScreen.write(b'`Where is everybody?')
             
     
