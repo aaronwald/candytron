@@ -33,7 +33,7 @@ while True:
     if button.is_pressed:
         print("Pressed")
         if candy_count % rockin:
-            serScreen.write(b'Rockin')
+            serScreen.write(b'`Smarties Smarties Smarties...')
             serScreen.flush()
         else:
             serScreen.write(b'Candy')
