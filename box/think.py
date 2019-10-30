@@ -4,10 +4,12 @@ from __future__ import print_function
 from gpiozero import Button
 import serial
 
+improt random
 import odrive
 from odrive.enums import *
 import time
 
+random.seed()
 # setup button
 button = Button(2)
 serScreen = serial.Serial('/dev/ttyACM1', 9600)
@@ -24,14 +26,29 @@ my_drive.axis0.requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL
 my_drive.axis0.controller.config.control_mode = CTRL_MODE_VELOCITY_CONTROL
 
 # main
+no_candy_count = 0
+candy_count = 0
+rockin = random.randrange(2,9,1)
 while True:
     if button.is_pressed:
         print("Pressed")
-        serScreen.write(b'Candy')
-        my_drive.axis0.controller.vel_setpoint = 5000
+        if candy_count % rockin:
+            serScreen.write(b'Rockin')
+        else:
+            serScreen.write(b'Candy')
+            
+        my_drive.axis0.controller.vel_setpoint = 4000
         time.sleep(2)
         my_drive.axis0.controller.vel_setpoint = 0
+        no_candy_count = 0
+        candy_count += 1
     else:
-        pass
+        time.sleep(1)
+        no_candy_count += 1
+
+        if not no_candy_count % 60:
+            serScreen.write(b'`Where is everybody?')
+            
+    
 
     
