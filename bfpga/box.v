@@ -2,7 +2,7 @@
 // clock on ping 21 is 12Mhz (12000000)
 
 
-module top(input clk, output D1, output D2, output D3, output D4, output D5, output J3_10);
+module top(input clk, output D1, output D2, output D3, output D4, output D5, output J3_10, output J3_11);
    wire       sysclk;							
    wire       locked;							
    pll myPLL (.clock_in(clk), .clock_out(sysclk), .locked(locked));	
@@ -20,10 +20,18 @@ module top(input clk, output D1, output D2, output D3, output D4, output D5, out
    reg [3:0]      rot;
    reg 		  clock_test;
    reg [1:0] 	  clock_on;
+
+   reg [7:0]    slider = 8'b11001100;
    
 
    //assign J3_10 = syscounter[SYS_CNTR_WIDTH-1];
    assign J3_10 = syscounter[3]; // // 100.5MHz / 2^4 = 6.29MHz
+
+   if (J3_10)
+   begin
+     J3_11 = slider[7];
+     slider = {slider[6:0], slider[7]};
+   end
 
    assign D5 = syscounter[SYS_CNTR_WIDTH-1]; // slowest
    assign D4 = syscounter[SYS_CNTR_WIDTH-2];

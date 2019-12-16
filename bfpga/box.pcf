@@ -7,3 +7,4 @@ set_io D4 96
 set_io D5 95
 set_io clk 21
 set_io J3_10 44
+set_io J3_11 45
