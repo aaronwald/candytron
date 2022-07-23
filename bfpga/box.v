@@ -6,41 +6,45 @@ module top(input clk, output D1, output D2, output D3, output D4, output D5, out
    wire       sysclk;							
    wire       locked;							
    pll myPLL (.clock_in(clk), .clock_out(sysclk), .locked(locked));	
-
-   // from this pll we can get a bunch of clocks worked out. 
-   // 27-bit counter: 100.5MHz / 2^27 ~ 0.749Hz 
-   localparam SYS_CNTR_WIDTH = 27;
-   
-   reg [SYS_CNTR_WIDTH-1:0] syscounter;
-   always @(posedge sysclk)
-     syscounter <= syscounter + 1;				
- 
    reg ready = 0;
    reg [23:0]     divider;
    reg [3:0]      rot;
    reg 		  clock_test;
    reg [1:0] 	  clock_on;
 
-   reg [7:0]    slider = 8'b11001100;
+   reg [7:0] 	  slider = 8'b10101010;
    
+   
+
+   // from this pll we can get a bunch of clocks worked out. 
+   // 27-bit counter: 100.5MHz / 2^27 ~ 0.749Hz 
+   localparam SYS_CNTR_WIDTH = 27;
 
    //assign J3_10 = syscounter[SYS_CNTR_WIDTH-1];
    assign J3_10 = syscounter[3]; // // 100.5MHz / 2^4 = 6.29MHz
+   
+   reg [SYS_CNTR_WIDTH-1:0] syscounter;
+   always @(posedge sysclk) begin
+      if (syscounter[3]) begin
+	 J3_11 = slider[7];
+	 slider <= {slider[6:0], slider[7]};
+      end
 
-   if (J3_10)
-   begin
-     J3_11 = slider[7];
-     slider = {slider[6:0], slider[7]};
-   end
+           syscounter <= syscounter + 1;				
+
+    end
+
+
 
    assign D5 = syscounter[SYS_CNTR_WIDTH-1]; // slowest
    assign D4 = syscounter[SYS_CNTR_WIDTH-2];
    assign D3 = syscounter[SYS_CNTR_WIDTH-3];
    assign D2 = syscounter[SYS_CNTR_WIDTH-2];
    assign D1 = syscounter[SYS_CNTR_WIDTH-3];
-  
    
    always @(posedge clk) begin
+
+
       if (ready) 
         begin
            if (divider == 12000000) 
