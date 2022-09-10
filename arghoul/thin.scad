@@ -3,7 +3,7 @@
 //letter = "A"; //Sign character to make
 style = "Noto Mono"; //See "Help" and "Font List"
 size = 100; //Size of character (height)
-depth = 10; //Depth of sign character
+depth = 14; //Depth of sign character
 $fn=100; //Curve facets - higher is smoother
 walls = 2; //Side wall thickness
 base=1; //Base thickness (-1 for open back)
