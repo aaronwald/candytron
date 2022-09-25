@@ -1,7 +1,7 @@
 
 mkdir -p output
 
-for letter in A R G H O U L D 
+for letter in A R G H O U L D 6
 do
     echo $letter
     openscad  -Dletter=\"$letter\" -o output/road-$letter-thin-face.stl thin-face.scad
