@@ -1,1 +1,1 @@
-vasm6502_oldstyle -Fbin -dotdir blink.s 
+vasm6502_oldstyle -Fbin -dotdir helloworld.s 
