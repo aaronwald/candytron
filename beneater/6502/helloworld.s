@@ -14,156 +14,60 @@ reset:
 
 	lda #%11100000 		; set top 3 pints on port a to output
 	sta DDRA
-
 	
 	lda #%00111000		; set 8 bit mode; 2-line display; 5x8 font
-	sta PORTB
-	lda #0                  ; clear RS/RW/E bits
-	sta PORTA		
-	lda #E 			; set enable bit
-	sta PORTA
-	lda #0                  ; clear RS/RW/E bits	
-	sta PORTA		
-
-	
+	jsr lcd_instruction
 	lda #%00001111		; display on, cursor on, blink on
-	sta PORTB
-	lda #0                  ; clear RS/RW/E bits
-	sta PORTA		
-	lda #E 			; set enable bit
-	sta PORTA
-	lda #0 			; clear RS/RW/E bits
-	sta PORTA		
-
+	jsr lcd_instruction
 	lda #%00000110		; incremet and shift cursor, dont shift display
-	sta PORTB
-	lda #0                  ; clear RS/RW/E bits
-	sta PORTA		
-	lda #E 			; set enable bit
-	sta PORTA
-	lda #0 			; clear RS/RW/E bits
-	sta PORTA		
+	jsr lcd_instruction
+	lda #%000000001		; clear
+	jsr lcd_instruction
 
-	lda #"H" 		
-	sta PORTB
-	lda #RS 		; RS
-	sta PORTA		
-	lda #(RS | E)		; set enable bit & RS
-	sta PORTA
-	lda #RS			; RS 
-	sta PORTA		
-
-	lda #"e" 		
-	sta PORTB
-	lda #RS 		; RS
-	sta PORTA		
-	lda #(RS | E)		; set enable bit & RS
-	sta PORTA
-	lda #RS			; RS 
-	sta PORTA		
-
-	lda #"l" 		
-	sta PORTB
-	lda #RS 		; RS
-	sta PORTA		
-	lda #(RS | E)		; set enable bit & RS
-	sta PORTA
-	lda #RS			; RS 
-	sta PORTA		
-
-	lda #"l" 		
-	sta PORTB
-	lda #RS 		; RS
-	sta PORTA		
-	lda #(RS | E)		; set enable bit & RS
-	sta PORTA
-	lda #RS			; RS 
-	sta PORTA		
-
-	lda #"o" 		
-	sta PORTB
-	lda #RS 		; RS
-	sta PORTA		
-	lda #(RS | E)		; set enable bit & RS
-	sta PORTA
-	lda #RS			; RS 
-	sta PORTA		
 	
-	lda #"," 		
-	sta PORTB
-	lda #RS 		; RS
-	sta PORTA		
-	lda #(RS | E)		; set enable bit & RS
-	sta PORTA
-	lda #RS			; RS 
-	sta PORTA		
-	
+	lda #"T"
+	jsr print_char
+	lda #"e"
+	jsr print_char
+	lda #"a" 		
+	jsr print_char
+	lda #"m" 		
+	jsr print_char
 	lda #" " 		
-	sta PORTB
-	lda #RS 		; RS
-	sta PORTA		
-	lda #(RS | E)		; set enable bit & RS
-	sta PORTA
-	lda #RS			; RS 
-	sta PORTA		
-
-	lda #"w" 		
-	sta PORTB
-	lda #RS 		; RS
-	sta PORTA		
-	lda #(RS | E)		; set enable bit & RS
-	sta PORTA
-	lda #RS			; RS 
-	sta PORTA		
-	
-	lda #"o" 		
-	sta PORTB
-	lda #RS 		; RS
-	sta PORTA		
-	lda #(RS | E)		; set enable bit & RS
-	sta PORTA
-	lda #RS			; RS 
-	sta PORTA		
-
-	lda #"r" 		
-	sta PORTB
-	lda #RS 		; RS
-	sta PORTA		
-	lda #(RS | E)		; set enable bit & RS
-	sta PORTA
-	lda #RS			; RS 
-	sta PORTA		
-
+	jsr print_char
+	lda #"W" 		
+	jsr print_char
+	lda #"a"
+	jsr print_char
 	lda #"l" 		
-	sta PORTB
-	lda #RS 		; RS
-	sta PORTA		
-	lda #(RS | E)		; set enable bit & RS
-	sta PORTA
-	lda #RS			; RS 
-	sta PORTA		
-
-	lda #"d" 
-	sta PORTB
-	lda #RS 		; RS
-	sta PORTA		
-	lda #(RS | E)		; set enable bit & RS
-	sta PORTA
-	lda #RS			; RS 
-	sta PORTA		
-
+	jsr print_char
+	lda #"d" 		
+	jsr print_char
 	lda #"!" 
-	sta PORTB
-	lda #RS 		; RS
-	sta PORTA		
-	lda #(RS | E)		; set enable bit & RS
-	sta PORTA
-	lda #RS			; RS 
-	sta PORTA		
-
+	jsr print_char
 	
 loop:
 	jmp loop
+
+lcd_instruction:
+	sta PORTB
+	lda #0                  ; clear RS/RW/E bits
+	sta PORTA		
+	lda #E 			; set enable bit
+	sta PORTA
+	lda #0 			; clear RS/RW/E bits
+	sta PORTA		
+	rts
+
+print_char:
+	sta PORTB
+	lda #RS 		; RS
+	sta PORTA		
+	lda #(RS | E)		; set enable bit & RS
+	sta PORTA
+	lda #RS			; RS 
+	sta PORTA		
+	rts
 	
 	.org $fffc
 	.word reset
