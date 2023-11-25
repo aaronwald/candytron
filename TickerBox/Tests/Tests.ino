@@ -1,62 +1,80 @@
-/*----------------------------------------------------------------------------
+#include <ESP8266WiFi.h>
+#include <Pixie_Chroma.h> 
+#include "arduino_secrets.h"
+PixieChroma pix; 
 
-  Pixie Chroma | 01_Getting_Started.ino
-  by Connor Nishijima Nov. 2021
-  -------------------------------------
-
-  Welcome to Pixie Chroma! This sketch will define the bare minimum of any
-  Pixie Chroma Arduino code, including how to initialize your Pixie Chromas
-  and print text to the display!
-
-----------------------------------------------------------------------------*/
-
-#include "Pixie_Chroma.h" // ... Include library
-PixieChroma pix; // ............ Get class object
-
-#define DATA_PIN  12 // GPIO to use for Pixie Chroma data line
+#define DATA_PIN  1 // GPIO to use for Pixie Chroma data line
 #define PIXIES_X  5  // Total amount and arrangement
 #define PIXIES_Y  1  // of Pixie PCBs = 2 x 1
 
-void setup() {
-  pix.begin( DATA_PIN, PIXIES_X, PIXIES_Y );
-  // Initializes the displays, and sets things
-  // like the default power budget for you.
+WiFiServer server(80);
 
-  pix.clear(); // ................... Clears the display buffer
-  pix.color( CRGB(255,0,64) ); // ... Sets the global color to *PINK*
-  
-  pix.print( "HELLO 1234" ); // ... Print a char array with a Shortcode (see 02_Advanced/14_Shortcode_Library)
-  pix.show(); // .................... Send all updates to the Pixie Chroma PCBs
+void setupWifi()
+{
+  Serial.begin(9600, SERIAL_8N1);
+  delay(10);
+  Serial.println();
+
+  WiFi.begin(SECRET_SSID, SECRET_PASS);
+
+  Serial.print("Connecting");
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println();
+
+  Serial.print("Connected, IP address: ");
+  Serial.println(WiFi.localIP());
+  server.begin();
+}
+
+void setupPixie() {
+  pix.set_scroll_type(SMOOTH);
+  pix.begin( DATA_PIN, PIXIES_X, PIXIES_Y );
+  pix.clear();
+  pix.show();
+}
+
+void setup() {
+  setupWifi();
+  setupPixie();
 }
 
 void loop() {
-  // Nothing to see here!
+ // Check if a client has connected
+  WiFiClient client = server.available();
+  if (!client) {
+    return;
+  }
+ 
+  // Wait until the client sends some data
+  while(!client.available()){
+    delay(1);
+  }
+ 
+  // Read the first line of the request
+  client.readStringUntil(' ');
+  String request = client.readStringUntil(' ');
+  Serial.print("request:");
+  Serial.println(request);
+  client.flush();
+  
+  if (request && !request.isEmpty() && request.length() > 1) {
+    pix.clear();
+    pix.set_brightness(32);
+    pix.color(CRGB::OrangeRed); 
+    pix.scroll_message(&request.c_str()[1], 0); 
+    // pix.show(); 
+  }
+
+  // Return the response
+  client.println("HTTP/1.1 200 OK");
+  client.println("Content-Type: application/json");
+  client.println();
+  client.println("{\"msg\": \"ok\"}"); 
+  client.println();
+ 
+  delay(1);
 }
-
-
-/*################################# WIRING ###################################
-
-  GND ---------------+---------------------------+
-                     |                           |
-  DATA_PIN -------+  |  +-- VCC    +----------+  |  +-- VCC
-                  |  |  |          |          |  |  |  
-           +- - - | -|- | - - -+   |   +- - - | -|- | - - -+
-           | ==== O  O  O ==== |   |   | ==== O  O  O ==== |
-                     ^             |             ^          
-           |                   |   |   |                   |
-                  PIXIE 1          |          PIXIE 2       
-           |                   |   |   |                   |
-                                   |                        
-           | ==== O  O  O ==== |   |   | ==== O  O  O ==== |
-           +- - - | - - - - - -+   |   +- - - - - - - - - -+
-                  |                |
-                  +----------------+
-               (DATA LINE TO NEXT PIXIE)
-
-  WARNING: Always double-check your wiring! LEDs may be low power, but they
-  are more-than-happy to burn themselves out if wired incorrectly!
-
-  Each Pixie Chroma PCB has a gold arrow on its face, which points to the top
-  of the PCB - shown here with a ^ character.
-
-################################## WIRING ##################################*/
