@@ -21,7 +21,7 @@ using RequestContext = RichHttpConfig::RequestContextType;
 SimpleAuthProvider authProvider;
 RichHttpServer<RichHttpConfig> httpServer(80, authProvider);
 
-void handleTick(RequestContext &request, CRGB color)
+void handleTick(RequestContext &request, CRGB color, const char *shortcode)
 {
   JsonObject body = request.getJsonBody().as<JsonObject>();
 
@@ -38,7 +38,14 @@ void handleTick(RequestContext &request, CRGB color)
     Serial.println(body["price"].as<float>());
 
     char buffer[100];
-    sprintf(buffer, "%s %f", request.pathVariables.get("ticker"), body["price"].as<float>());
+    if (shortcode)
+    {
+      sprintf(buffer, "%s %f %s", request.pathVariables.get("ticker"), body["price"].as<float>(), shortcode);
+    }
+    else
+    {
+      sprintf(buffer, "%s %f", request.pathVariables.get("ticker"), body["price"].as<float>());
+    }
 #ifdef PIXIE_ENABLED
     scrollMessage(buffer, color);
 #endif
@@ -49,17 +56,17 @@ void handleTick(RequestContext &request, CRGB color)
 
 void handleUpTick(RequestContext &request)
 {
-  handleTick(request, CRGB::Green);
+  handleTick(request, CRGB::Green, "[:ARROW_UP:]");
 }
 
 void handleDownTick(RequestContext &request)
 {
-  handleTick(request, CRGB::Red);
+  handleTick(request, CRGB::Red, "[:ARROW_DOWN:] ");
 }
 
 void handleSameTick(RequestContext &request)
 {
-  handleTick(request, CRGB::Blue);
+  handleTick(request, CRGB::Blue, nullptr);
 }
 
 void setupWifi()
