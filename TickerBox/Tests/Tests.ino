@@ -1,14 +1,103 @@
+#include <functional>
 #include <ESP8266WiFi.h>
-#include <Pixie_Chroma.h> 
+#include <Pixie_Chroma.h>
+#include <RichHttpServer.h>
 #include "arduino_secrets.h"
-PixieChroma pix; 
 
-#define DATA_PIN  1 // GPIO to use for Pixie Chroma data line
-#define PIXIES_X  5  // Total amount and arrangement
-#define PIXIES_Y  1  // of Pixie PCBs = 2 x 1
+using namespace std::placeholders;
 
-WiFiServer server(80);
+PixieChroma pix;
 
+// PixieChrome seems to mess up the serial monitor for debugging and makes it hard to debug the HTTP side
+#define PIXIE_ENABLED 1
+
+#define DATA_PIN 1 // GPIO to use for Pixie Chroma data line
+#define PIXIES_X 5 // Total amount and arrangement
+#define PIXIES_Y 1 // of Pixie PCBs = 2 x 1
+
+// Define shorthand for common types
+using RichHttpConfig = RichHttp::Generics::Configs::EspressifBuiltin;
+using RequestContext = RichHttpConfig::RequestContextType;
+SimpleAuthProvider authProvider;
+RichHttpServer<RichHttpConfig> httpServer(80, authProvider);
+
+void handleUpTick(RequestContext &request)
+{
+  JsonObject body = request.getJsonBody().as<JsonObject>();
+
+  if (body.isNull())
+  {
+    request.response.setCode(400);
+    request.response.json["error"] = F("Invalid JSON.  Must be an object.");
+    return;
+  }
+
+  if (body.containsKey("price"))
+  {
+    Serial.println(request.pathVariables.get("ticker"));
+    Serial.println(body["price"].as<float>());
+
+    char buffer[100];
+    sprintf(buffer, "%s %f", request.pathVariables.get("ticker"), body["price"].as<float>());
+#ifdef PIXIE_ENABLED
+    scrollMessage(buffer, CRGB::Green);
+#endif
+  }
+
+  request.response.json["message"] = "{\"msg\": \"ok\"}";
+}
+
+void handleDownTick(RequestContext &request)
+{
+  JsonObject body = request.getJsonBody().as<JsonObject>();
+
+  if (body.isNull())
+  {
+    request.response.setCode(400);
+    request.response.json["error"] = F("Invalid JSON.  Must be an object.");
+    return;
+  }
+
+  if (body.containsKey("price"))
+  {
+    Serial.println(request.pathVariables.get("ticker"));
+    Serial.println(body["price"].as<float>());
+
+    char buffer[100];
+    sprintf(buffer, "%s %f", request.pathVariables.get("ticker"), body["price"].as<float>());
+#ifdef PIXIE_ENABLED
+    scrollMessage(buffer, CRGB::Red);
+#endif
+  }
+
+  request.response.json["message"] = "{\"msg\": \"ok\"}";
+}
+
+void handleSameTick(RequestContext &request)
+{
+  JsonObject body = request.getJsonBody().as<JsonObject>();
+
+  if (body.isNull())
+  {
+    request.response.setCode(400);
+    request.response.json["error"] = F("Invalid JSON.  Must be an object.");
+    return;
+  }
+
+  if (body.containsKey("price"))
+  {
+    Serial.println(request.pathVariables.get("ticker"));
+    Serial.println(body["price"].as<float>());
+
+    char buffer[100];
+    sprintf(buffer, "%s %f", request.pathVariables.get("ticker"), body["price"].as<float>());
+#ifdef PIXIE_ENABLED
+    scrollMessage(buffer, CRGB::Blue);
+#endif
+  }
+
+  request.response.json["message"] = "{\"msg\": \"ok\"}";
+}
 void setupWifi()
 {
   Serial.begin(9600, SERIAL_8N1);
@@ -27,54 +116,51 @@ void setupWifi()
 
   Serial.print("Connected, IP address: ");
   Serial.println(WiFi.localIP());
-  server.begin();
+  delay(1);
 }
 
-void setupPixie() {
+void setupRichHTTP()
+{
+  authProvider.disableAuthentication();
+  httpServer
+      .buildHandler("/up/:ticker")
+      .on(HTTP_PUT, std::bind(handleUpTick, _1));
+  httpServer
+      .buildHandler("/down/:ticker")
+      .on(HTTP_PUT, std::bind(handleDownTick, _1));
+  httpServer
+      .buildHandler("/same/:ticker")
+      .on(HTTP_PUT, std::bind(handleSameTick, _1));
+  httpServer.clearBuilders();
+  httpServer.begin();
+}
+
+void setupPixie()
+{
   pix.set_scroll_type(SMOOTH);
-  pix.begin( DATA_PIN, PIXIES_X, PIXIES_Y );
+  pix.begin(DATA_PIN, PIXIES_X, PIXIES_Y);
   pix.clear();
   pix.show();
 }
 
-void setup() {
-  setupWifi();
-  setupPixie();
+void scrollMessage(const char *msg, CRGB color)
+{
+  pix.clear();
+  pix.set_brightness(32);
+  pix.color(color);
+  pix.scroll_message(msg, 0);
 }
 
-void loop() {
- // Check if a client has connected
-  WiFiClient client = server.available();
-  if (!client) {
-    return;
-  }
- 
-  // Wait until the client sends some data
-  while(!client.available()){
-    delay(1);
-  }
- 
-  // Read the first line of the request
-  client.readStringUntil(' ');
-  String request = client.readStringUntil(' ');
-  Serial.print("request:");
-  Serial.println(request);
-  client.flush();
-  
-  if (request && !request.isEmpty() && request.length() > 1) {
-    pix.clear();
-    pix.set_brightness(32);
-    pix.color(CRGB::OrangeRed); 
-    pix.scroll_message(&request.c_str()[1], 0); 
-    // pix.show(); 
-  }
+void setup()
+{
+  setupWifi();
+  setupRichHTTP();
+#ifdef PIXIE_ENABLED
+  setupPixie();
+#endif
+}
 
-  // Return the response
-  client.println("HTTP/1.1 200 OK");
-  client.println("Content-Type: application/json");
-  client.println();
-  client.println("{\"msg\": \"ok\"}"); 
-  client.println();
- 
-  delay(1);
+void loop()
+{
+  httpServer.handleClient();
 }

@@ -16,8 +16,9 @@ def on_message(ws, message):
 
         for x in data[1]:
             price = x[0]
-            print(ticker, price)
-            my_queue.put([ticker, price])
+            ticker = ticker.replace('/', '')
+            # print(ticker, price)
+            my_queue.put([ticker, float(price)])
 
 my_queue = queue.Queue()
 ws = websocket.WebSocketApp(ws_url, on_message=on_message)
@@ -49,6 +50,7 @@ def main():
     try:
         producer_thread = threading.Thread(target=connect_to_websocket)
         producer_thread.start()
+        last_price = {}
 
         while True:
             try:
@@ -63,10 +65,25 @@ def main():
                     updates[ticker] = price
 
                 for ticker in updates:
-                    print("Send", ticker, updates[ticker])
-                    response = requests.get(f"{ticker_url}/{ticker}_{updates[ticker]}")
+                    price = updates[ticker]
+
+                    direction = "up"
+                    msg_body = {"ticker": ticker, "price": price}
+
+                    if ticker in last_price:
+                        if price < last_price[ticker]:
+                            direction = "down"
+                        elif price == last_price[ticker]:
+                            direction = "same"
+
+                    last_price[ticker] = price
+                    print("Send", direction, ticker, price)
+
+                    response = requests.put(f"{ticker_url}/{direction}/{ticker}", data=json.dumps(msg_body))
                     if response.status_code == 200:
-                        print(response.json())
+                        print("\t", response.json())
+                    else:
+                        print(response.status_code, response.text)
             except queue.Empty:
                 pass
     except KeyboardInterrupt:
