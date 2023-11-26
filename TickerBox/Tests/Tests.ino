@@ -21,7 +21,7 @@ using RequestContext = RichHttpConfig::RequestContextType;
 SimpleAuthProvider authProvider;
 RichHttpServer<RichHttpConfig> httpServer(80, authProvider);
 
-void handleUpTick(RequestContext &request)
+void handleTick(RequestContext &request, CRGB color)
 {
   JsonObject body = request.getJsonBody().as<JsonObject>();
 
@@ -40,70 +40,35 @@ void handleUpTick(RequestContext &request)
     char buffer[100];
     sprintf(buffer, "%s %f", request.pathVariables.get("ticker"), body["price"].as<float>());
 #ifdef PIXIE_ENABLED
-    scrollMessage(buffer, CRGB::Green);
+    scrollMessage(buffer, color);
 #endif
   }
 
   request.response.json["message"] = "{\"msg\": \"ok\"}";
+}
+
+void handleUpTick(RequestContext &request)
+{
+  handleTick(request, CRGB::Green);
 }
 
 void handleDownTick(RequestContext &request)
 {
-  JsonObject body = request.getJsonBody().as<JsonObject>();
-
-  if (body.isNull())
-  {
-    request.response.setCode(400);
-    request.response.json["error"] = F("Invalid JSON.  Must be an object.");
-    return;
-  }
-
-  if (body.containsKey("price"))
-  {
-    Serial.println(request.pathVariables.get("ticker"));
-    Serial.println(body["price"].as<float>());
-
-    char buffer[100];
-    sprintf(buffer, "%s %f", request.pathVariables.get("ticker"), body["price"].as<float>());
-#ifdef PIXIE_ENABLED
-    scrollMessage(buffer, CRGB::Red);
-#endif
-  }
-
-  request.response.json["message"] = "{\"msg\": \"ok\"}";
+  handleTick(request, CRGB::Red);
 }
 
 void handleSameTick(RequestContext &request)
 {
-  JsonObject body = request.getJsonBody().as<JsonObject>();
-
-  if (body.isNull())
-  {
-    request.response.setCode(400);
-    request.response.json["error"] = F("Invalid JSON.  Must be an object.");
-    return;
-  }
-
-  if (body.containsKey("price"))
-  {
-    Serial.println(request.pathVariables.get("ticker"));
-    Serial.println(body["price"].as<float>());
-
-    char buffer[100];
-    sprintf(buffer, "%s %f", request.pathVariables.get("ticker"), body["price"].as<float>());
-#ifdef PIXIE_ENABLED
-    scrollMessage(buffer, CRGB::Blue);
-#endif
-  }
-
-  request.response.json["message"] = "{\"msg\": \"ok\"}";
+  handleTick(request, CRGB::Blue);
 }
+
 void setupWifi()
 {
   Serial.begin(9600, SERIAL_8N1);
   delay(10);
   Serial.println();
 
+  WiFi.setHostname("crowticker");
   WiFi.begin(SECRET_SSID, SECRET_PASS);
 
   Serial.print("Connecting");

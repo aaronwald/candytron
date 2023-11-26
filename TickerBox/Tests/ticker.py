@@ -4,7 +4,7 @@ import requests
 import threading
 import queue
 
-ticker_url = 'http://192.168.1.227'
+ticker_url = 'http://crowticker.localdomain'
 ws_url = 'wss://ws.kraken.com'
 
 
