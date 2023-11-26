@@ -30,7 +30,7 @@ def connect_to_websocket():
     # Define the subscription message for the BTC/USD trading pair
     subscribe_message = {
         "event": "subscribe",
-        "pair": ["BTC/USD", "ETH/USD"],
+        "pair": ["BTC/USD", "ETH/USD", "USDT/USD", "USDT/EUR", "SOL/USD"],
         "subscription": {
             "name": "trade"
         }
