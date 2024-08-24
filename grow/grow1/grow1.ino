@@ -1,18 +1,12 @@
-//https://github.com/m5stack/M5Atom/blob/master/examples/Advanced/MQTT/MQTT.ino
-
 #include <WiFi.h>
 #include <PubSubClient.h>
+#include "arduino_secrets.h"
 
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-
-// Configure the name and password of the connected wifi and your MQTT Serve
-// host.  配置所连接wifi的名称、密码以及你MQTT服务器域名
-const char* ssid        = "xx";
-const char* password    = "xx";
 const char* mqtt_server = "homeassistant.localdomain";
-const char* mqtt_topic  = "m5/humidity";
+const char* mqtt_topic  = "m5/cactus/humidity";
 
 unsigned long lastMsg = 0;
 #define MSG_BUFFER_SIZE (50)
@@ -23,13 +17,10 @@ void callback(char* topic, byte* payload, unsigned int length);
 void reConnect();
 
 void setup() {
-    Serial.begin(9600); // open serial port, set the baud rate as 9600 bps
-
+    Serial.begin(9600); 
     setupWifi();
-    client.setServer(mqtt_server,
-                     1883);  
-    client.setCallback(
-        callback);  
+    client.setServer(mqtt_server, 1883);  
+    client.setCallback(callback);  
 }
 
 void loop() {
@@ -37,15 +28,12 @@ void loop() {
     if (!client.connected()) {
         reConnect();
     }
-    client.loop();  // This function is called periodically to allow clients to
-                    // process incoming messages and maintain connections to the
-
-    unsigned long now =
-        millis();  // Obtain the host startup duration.  获取主机开机时长
-    if (now - lastMsg > 2000) {
+    client.loop();  
+    unsigned long now = millis();
+    if (now - lastMsg > 15000) {
         lastMsg = now;
-        val = analogRead(G33); //connect sensor to Analog 0
-        snprintf(msg, MSG_BUFFER_SIZE, "hello world #%d",val); 
+        val = analogRead(G33); 
+        snprintf(msg, MSG_BUFFER_SIZE, "%d",val); 
         Serial.println(msg);
         client.publish(mqtt_topic, msg); 
     }
@@ -54,10 +42,9 @@ void loop() {
 
 void setupWifi() {
     delay(10);
-    Serial.printf("Connecting to %s", ssid);
-    WiFi.mode(
-        WIFI_STA);  // Set the mode to WiFi station mode.  设置模式为WIFI站模式
-    WiFi.begin(ssid, password);  // Start Wifi connection.  开始wifi连接
+    Serial.printf("Connecting to %s", SSID);
+    WiFi.mode(WIFI_STA); 
+    WiFi.begin(SSID, SSID_KEY);  
 
     while (WiFi.status() != WL_CONNECTED) {
         delay(500);
@@ -81,7 +68,7 @@ void reConnect() {
         Serial.print("Attempting MQTT connection...");
         String clientId = "M5Stack-";
         clientId += String(random(0xffff), HEX);
-        if (client.connect(clientId.c_str(), "xx", "xx")) {
+        if (client.connect(clientId.c_str(), MQTT_USER, MQTT_PASSWORD)) {
             Serial.println("connected");
             client.publish(mqtt_topic, "hello world");
             client.subscribe(mqtt_topic);
